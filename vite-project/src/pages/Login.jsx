@@ -11,13 +11,9 @@ export default function Login({ setUser }) {
     e.preventDefault();
     try {
       const res = await axios.post('http://localhost:5000/login', { username, password, role });
-      
+
       const loggedInUser = res.data;
-
-      // Save user in App state
       setUser(loggedInUser);
-
-      // Persist login in localStorage
       localStorage.setItem('user', JSON.stringify(loggedInUser));
 
       setError('');
@@ -27,8 +23,15 @@ export default function Login({ setUser }) {
   };
 
   return (
-    <div className="d-flex vh-100 justify-content-center align-items-center" style={{ backgroundColor: 'darkgreen' }}>
-      <form className="p-4 rounded" style={{ backgroundColor: 'white', minWidth: '300px' }} onSubmit={handleSubmit}>
+    <div
+      className="d-flex vh-100 justify-content-center align-items-center"
+      style={{ backgroundColor: '#f4f4f4' }}
+    >
+      <form
+        className="p-4 rounded shadow"
+        style={{ backgroundColor: 'white', minWidth: '350px' }}
+        onSubmit={handleSubmit}
+      >
         <h3 className="text-center mb-3">Login</h3>
 
         {error && <div className="alert alert-danger">{error}</div>}
@@ -57,14 +60,20 @@ export default function Login({ setUser }) {
 
         <div className="mb-3">
           <label className="form-label">Role</label>
-          <select className="form-select" value={role} onChange={(e) => setRole(e.target.value)}>
+          <select
+            className="form-select"
+            value={role}
+            onChange={(e) => setRole(e.target.value)}
+          >
             <option value="teacher">Teacher</option>
             <option value="parent">Parent</option>
             <option value="admin">Admin</option>
           </select>
         </div>
 
-        <button type="submit" className="btn btn-success w-100">Login</button>
+        <button type="submit" className="btn btn-dark w-100">
+          Login
+        </button>
       </form>
     </div>
   );
