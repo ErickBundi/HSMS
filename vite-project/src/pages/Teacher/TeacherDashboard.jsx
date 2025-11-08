@@ -11,19 +11,33 @@ export default function TeacherDashboard({ setUser }) {
 
   const allStudents = {
     "Form 2A": [
-      { name: "John Doe", scores: {} },
-      { name: "Alice Brown", scores: {} },
+      { name: "Bundi Nyaga", scores: {}, attendance: {} },
+      { name: "Kinya Edith", scores: {}, attendance: {} },
     ],
     "Form 3B": [
-      { name: "Jane Smith", scores: {} },
-      { name: "Bob Johnson", scores: {} },
+      { name: "Mutuma Kenn", scores: {}, attendance: {} },
+      { name: "Maingi Ian", scores: {}, attendance: {} },
     ],
   };
+
+  // Announcements
+  const announcements = [
+    "Staff meeting on Friday at 2pm.",
+    "Submit mid-term report updates by next week.",
+    "Sports Day scheduled for next month.",
+  ];
+
+  const upcomingDates = [
+    { event: "Mid-term Exams", date: "2025-03-15" },
+    { event: "Closing Day", date: "2025-04-02" },
+    { event: "Parents Meeting", date: "2025-04-10" },
+  ];
 
   const [selectedClass, setSelectedClass] = useState("");
   const [students, setStudents] = useState([]);
   const [subjects, setSubjects] = useState([]);
-  const [activeMenu, setActiveMenu] = useState("enterResults");
+  const [activeMenu, setActiveMenu] = useState("dashboard");
+  const [attendanceDate, setAttendanceDate] = useState("");
 
   const handleClassChange = (cls) => {
     setSelectedClass(cls);
@@ -34,6 +48,12 @@ export default function TeacherDashboard({ setUser }) {
   const handleScoreChange = (studentIndex, subject, value) => {
     const updatedStudents = [...students];
     updatedStudents[studentIndex].scores[subject] = value;
+    setStudents(updatedStudents);
+  };
+
+  const handleAttendanceChange = (studentIndex, value) => {
+    const updatedStudents = [...students];
+    updatedStudents[studentIndex].attendance[attendanceDate] = value;
     setStudents(updatedStudents);
   };
 
@@ -89,13 +109,26 @@ export default function TeacherDashboard({ setUser }) {
           <li className="nav-item mb-2">
             <button
               className={`btn w-100 ${
-                activeMenu === "messages"
+                activeMenu === "attendance"
                   ? "btn-secondary text-white"
                   : "btn-outline-secondary"
               }`}
-              onClick={() => setActiveMenu("messages")}
+              onClick={() => setActiveMenu("attendance")}
             >
-              Messages
+              Attendance
+            </button>
+          </li>
+
+          <li className="nav-item mb-2">
+            <button
+              className={`btn w-100 ${
+                activeMenu === "reports"
+                  ? "btn-secondary text-white"
+                  : "btn-outline-secondary"
+              }`}
+              onClick={() => setActiveMenu("reports")}
+            >
+              Generate Reports
             </button>
           </li>
 
@@ -110,11 +143,54 @@ export default function TeacherDashboard({ setUser }) {
         </ul>
       </div>
 
-      {/* Main Content */}
+      {/* Main Area */}
       <div className="flex-grow-1 p-4">
         <h2 className="mb-4">Welcome, Teacher</h2>
 
-        {/* Enter Results Section */}
+        {/* DASHBOARD */}
+        {activeMenu === "dashboard" && (
+          <>
+            <h4>Your Assigned Classes & Subjects</h4>
+            <ul className="list-group w-50 mt-3">
+              {Object.keys(teacherAssignments).map((cls, i) => (
+                <li key={i} className="list-group-item">
+                  <strong>{cls}:</strong> {teacherAssignments[cls].join(", ")}
+                </li>
+              ))}
+            </ul>
+
+            {/* Announcements */}
+            <h4 className="mt-5">Announcements</h4>
+            <ul className="list-group w-75 mt-3">
+              {announcements.map((note, i) => (
+                <li key={i} className="list-group-item">
+                  📌 {note}
+                </li>
+              ))}
+            </ul>
+
+            {/* ✅ Upcoming Key Dates */}
+            <h4 className="mt-5">Upcoming Key Dates</h4>
+            <table className="table table-striped w-75 mt-3">
+              <thead className="table-light">
+                <tr>
+                  <th>Event</th>
+                  <th>Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                {upcomingDates.map((d, i) => (
+                  <tr key={i}>
+                    <td>{d.event}</td>
+                    <td>{d.date}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </>
+        )}
+
+        {/* ENTER RESULTS */}
         {activeMenu === "enterResults" && (
           <>
             <div className="mb-3">
@@ -156,11 +232,7 @@ export default function TeacherDashboard({ setUser }) {
                               className="form-control"
                               value={s.scores[subj] || ""}
                               onChange={(e) =>
-                                handleScoreChange(
-                                  studentIndex,
-                                  subj,
-                                  e.target.value
-                                )
+                                handleScoreChange(studentIndex, subj, e.target.value)
                               }
                               min="0"
                               max="100"
@@ -176,14 +248,100 @@ export default function TeacherDashboard({ setUser }) {
           </>
         )}
 
-        {/* Dashboard Placeholder */}
-        {activeMenu === "dashboard" && (
-          <h4 className="mt-4">Dashboard coming soon...</h4>
+        {/* ATTENDANCE */}
+        {activeMenu === "attendance" && (
+          <>
+            <div className="mb-3">
+              <label className="form-label">Select Class:</label>
+              <select
+                className="form-select w-50"
+                value={selectedClass}
+                onChange={(e) => handleClassChange(e.target.value)}
+              >
+                <option value="">-- Choose Class --</option>
+                {Object.keys(teacherAssignments).map((cls, index) => (
+                  <option key={index} value={cls}>
+                    {cls}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {selectedClass && (
+              <>
+                <label className="form-label">Select Date:</label>
+                <input
+                  type="date"
+                  className="form-control w-50"
+                  value={attendanceDate}
+                  onChange={(e) => setAttendanceDate(e.target.value)}
+                />
+
+                {attendanceDate && (
+                  <>
+                    <h4 className="mt-4">Attendance - {selectedClass}</h4>
+                    <table className="table table-striped mt-3">
+                      <thead className="table-light">
+                        <tr>
+                          <th>Student Name</th>
+                          <th>Present / Absent</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {students.map((s, idx) => (
+                          <tr key={idx}>
+                            <td>{s.name}</td>
+                            <td>
+                              <select
+                                className="form-select"
+                                value={s.attendance[attendanceDate] || ""}
+                                onChange={(e) =>
+                                  handleAttendanceChange(idx, e.target.value)
+                                }
+                              >
+                                <option value="">-- Select --</option>
+                                <option value="Present">Present</option>
+                                <option value="Absent">Absent</option>
+                              </select>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </>
+                )}
+              </>
+            )}
+          </>
         )}
 
-        {/* Messages Placeholder */}
-        {activeMenu === "messages" && (
-          <h4 className="mt-4">Messages feature coming soon...</h4>
+        {/* REPORT CARDS */}
+        {activeMenu === "reports" && (
+          <>
+            <h4>Generate Report Cards</h4>
+
+            <select
+              className="form-select w-50"
+              value={selectedClass}
+              onChange={(e) => handleClassChange(e.target.value)}
+            >
+              <option value="">-- Choose Class --</option>
+              {Object.keys(teacherAssignments).map((cls, index) => (
+                <option key={index} value={cls}>
+                  {cls}
+                </option>
+              ))}
+            </select>
+
+            {selectedClass && (
+              <button
+                className="btn btn-primary mt-3"
+                onClick={() => window.print()}
+              >
+                Print Report Cards
+              </button>
+            )}
+          </>
         )}
       </div>
     </div>

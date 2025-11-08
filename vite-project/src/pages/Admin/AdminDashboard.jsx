@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 
 export default function AdminDashboard({ setUser }) {
   const navigate = useNavigate();
-  const [activeMenu, setActiveMenu] = useState("assign");
+  const [activeMenu, setActiveMenu] = useState("dashboard");
 
   const classes = ["Form 1", "Form 2", "Form 3", "Form 4"];
   const streams = ["A", "B", "C", "D"];
@@ -20,17 +20,41 @@ export default function AdminDashboard({ setUser }) {
   ];
 
   const teachers = [
-    "Mr. John",
-    "Ms. Mary",
-    "Mr. Brian",
-    "Mrs. Tracy",
-    "Mr. Charles",
+    "Mr. John Opiyo",
+    "Ms. Mary Wambui",
+    "Mr. Brian Ochieng",
+    "Mrs. Tracy Aisha",
+    "Mr. Charles Chitechi",
+  ];
+
+  // Admin numbers for dashboard
+  const totalStudents = 400;
+  const totalTeachers = teachers.length;
+  const totalClasses = 16; // 4 forms × 4 streams
+  const recentActivity = [
+    "Registered Form 2A Student",
+    "Assigned Mathematics to Mr. John",
+    "Generated Form 3B Report Sheet",
+  ];
+    // Announcements
+  const announcements = [
+    "Staff meeting on Friday at 2pm.",
+    "Submit mid-term report updates by next week.",
+    "Sports Day scheduled for next month.",
+  ];
+  const upcomingDates = [
+    { event: "Mid-term Exams", date: "2025-03-15" },
+    { event: "Closing Day", date: "2025-04-02" },
+    { event: "Parents Meeting", date: "2025-04-10" },
   ];
 
   // Assignment state
   const [selectedClass, setSelectedClass] = useState("");
   const [pendingAssignments, setPendingAssignments] = useState({});
   const [savedAssignments, setSavedAssignments] = useState([]);
+
+  const [selectedClassForThreshold, setSelectedClassForThreshold] = useState(""); 
+
 
   // New Enrolment tabs
   const [activeEnrolTab, setActiveEnrolTab] = useState("student");
@@ -53,19 +77,49 @@ export default function AdminDashboard({ setUser }) {
     email: "",
   });
 
+  // View Classes state
+  const [viewClass, setViewClass] = useState("");
+  const [viewStream, setViewStream] = useState("");
+  const sampleClassList = ["Bundi Nyaga", "Kinya Edith", "Mutuma Kenn", "Maingi Ian"];
+
+  // EXAM RESULTS STATE
+  const [examClass, setExamClass] = useState("");
+  const [examStudents, setExamStudents] = useState([]);
+  const [examSubjects, setExamSubjects] = useState(subjects);
+
+  // ANNOUNCEMENT STATE 
+  const [announcementAudience, setAnnouncementAudience] = useState([]);
+  const [announcementMessage, setAnnouncementMessage] = useState("");
+  const [sentAnnouncements, setSentAnnouncements] = useState([]);
+
+  // PERFORMANCE THRESHOLDS STATE
+  const [performanceThresholds, setPerformanceThresholds] = useState({
+    "Form 1": {
+      English: 50,
+      Math: 50,
+      Science: 50,
+    },
+    "Form 2": {
+      English: 55,
+      Math: 55,
+      Science: 55,
+    },
+  });
+
+
+
   const handleLogout = () => {
     setUser(null);
     localStorage.clear();
     navigate("/");
   };
 
-  // Change selected teacher
   const handleTeacherSelect = (subject, teacher) => {
     setPendingAssignments((prev) => {
       if (!teacher) {
-        const copy = { ...prev };
-        delete copy[subject];
-        return copy;
+        const cp = { ...prev };
+        delete cp[subject];
+        return cp;
       }
       return { ...prev, [subject]: teacher };
     });
@@ -95,7 +149,7 @@ export default function AdminDashboard({ setUser }) {
     newOnes.forEach((a) => delete remaining[a.subject]);
     setPendingAssignments(remaining);
 
-    alert(`${newOnes.length} saved. ${skipped.length ? `${skipped.join(", ")} skipped.` : ""}`);
+    alert(`${newOnes.length} saved. ${skipped.length ? skipped.join(", ") + " skipped" : ""}`);
   };
 
   const removeAssignment = (subject, className) => {
@@ -106,42 +160,71 @@ export default function AdminDashboard({ setUser }) {
 
   // SUBMIT STUDENT
   const submitStudent = () => {
-    alert(
-      `Student Registered:\n${studentData.name}, ${studentData.className}${studentData.stream}, Parent: ${studentData.parentContact}`
-    );
-    setStudentData({
-      name: "",
-      dob: "",
-      className: "",
-      stream: "",
-      parentContact: "",
-      parentEmail: "",
-    });
+    alert(`Student Registered: ${studentData.name}, ${studentData.className}${studentData.stream}`);
+    setStudentData({ name: "", dob: "", className: "", stream: "", parentContact: "", parentEmail: "" });
   };
 
   // SUBMIT TEACHER
   const submitTeacher = () => {
-    alert(
-      `Teacher Registered:\n${teacherData.name}, Subject: ${teacherData.subject}, Phone: ${teacherData.phone}`
-    );
+    alert(`Teacher Registered: ${teacherData.name}, Subject: ${teacherData.subject}`);
     setTeacherData({ name: "", subject: "", phone: "", email: "" });
   };
 
+  // Record exam scores
+  const handleScoreChange = (idx, subj, value) => {
+    const updated = [...examStudents];
+    updated[idx].scores[subj] = value;
+    setExamStudents(updated);
+  };
+
+  // Helper: toggle audience
+const toggleAudience = (group) => {
+  if (announcementAudience.includes(group)) {
+    setAnnouncementAudience(announcementAudience.filter((g) => g !== group));
+  } else {
+    setAnnouncementAudience([...announcementAudience, group]);
+  }
+};
+
+// Helper: send announcement
+const sendAnnouncement = () => {
+  if (!announcementMessage.trim()) return alert("Write a message first!");
+  if (announcementAudience.length === 0) return alert("Select audience!");
+
+  setSentAnnouncements([
+    ...sentAnnouncements,
+    {
+      message: announcementMessage,
+      audience: [...announcementAudience],
+      date: new Date().toLocaleString(),
+    },
+  ]);
+
+  setAnnouncementMessage("");
+  setAnnouncementAudience([]);
+
+  alert("Announcement Sent ✅");
+};
+
+
   return (
     <div className="vh-100 d-flex" style={{ backgroundColor: "#f5f5f5" }}>
-      {/* ✅ Sidebar */}
-      <div
-        className="p-3 border-end"
-        style={{ width: "250px", backgroundColor: "white" }}
-      >
+      {/* Sidebar */}
+      <div className="p-3 border-end" style={{ width: "250px", backgroundColor: "white" }}>
         <h4 className="mb-4">Admin Menu</h4>
 
         {[
           { label: "Dashboard", key: "dashboard" },
           { label: "View Classes", key: "view" },
           { label: "Assign Classes", key: "assign" },
+          { label: "Record Results", key: "results" },
+          { label: "Generate Reports", key: "reports" },
           { label: "New Enrolment", key: "enrol" },
           { label: "Send Alerts", key: "alerts" },
+          { label: "Announcements", key: "announcements" },
+          { label: "Set Thresholds", key: "thresholds" },
+
+
         ].map((item) => (
           <button
             key={item.key}
@@ -169,152 +252,126 @@ export default function AdminDashboard({ setUser }) {
         </button>
       </div>
 
-      {/* ✅ Main Content */}
+      {/* Main Content */}
       <div className="flex-grow-1 p-4">
         <h2 className="mb-4">Admin Dashboard</h2>
 
-        {/* ✅ New Enrolment Page */}
-        {activeMenu === "enrol" && (
+        {/* DASHBOARD OVERVIEW */}
+        {activeMenu === "dashboard" && (
           <>
-            <h4>New Enrolment</h4>
-
-            {/* Tabs */}
-            <div className="d-flex mb-3">
-              <button
-                className="btn me-2"
-                style={{
-                  backgroundColor: activeEnrolTab === "student" ? "#e9ecef" : "white",
-                  border: "1px solid #ccc",
-                }}
-                onClick={() => setActiveEnrolTab("student")}
-              >
-                Register Student
-              </button>
-
-              <button
-                className="btn"
-                style={{
-                  backgroundColor: activeEnrolTab === "teacher" ? "#e9ecef" : "white",
-                  border: "1px solid #ccc",
-                }}
-                onClick={() => setActiveEnrolTab("teacher")}
-              >
-                Register Teacher
-              </button>
+            <div className="row">
+              <div className="col-md-3">
+                <div className="card p-3 text-center">
+                  <h5>Total Students</h5>
+                  <h2>{totalStudents}</h2>
+                </div>
+              </div>
+              <div className="col-md-3">
+                <div className="card p-3 text-center">
+                  <h5>Total Teachers</h5>
+                  <h2>{totalTeachers}</h2>
+                </div>
+              </div>
+              <div className="col-md-3">
+                <div className="card p-3 text-center">
+                  <h5>Total Classes</h5>
+                  <h2>{totalClasses}</h2>
+                </div>
+              </div>
             </div>
 
-            {/* ✅ STUDENT FORM */}
-            {activeEnrolTab === "student" && (
-              <div className="card p-4" style={{ background: "white" }}>
-                <h5>Register Student</h5>
+            
+            {/* Announcements */}
+            <h4 className="mt-5">Announcements</h4>
+            <ul className="list-group w-75 mt-3">
+              {announcements.map((note, i) => (
+                <li key={i} className="list-group-item">
+                  📌 {note}
+                </li>
+              ))}
+            </ul>
+            <h4 className="mt-5">Upcoming Key Dates</h4>
+            <table className="table table-striped w-75 mt-3">
+              <thead className="table-light">
+                <tr>
+                  <th>Event</th>
+                  <th>Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                {upcomingDates.map((d, i) => (
+                  <tr key={i}>
+                    <td>{d.event}</td>
+                    <td>{d.date}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <h4 className="mt-4">Recent Activity</h4>
+            <ul className="list-group w-50">
+              {recentActivity.map((act, i) => (
+                <li className="list-group-item" key={i}>
+                  {act}
+                </li>
+              ))}
+            </ul>
 
-                <input
-                  className="form-control mt-2"
-                  placeholder="Full Name"
-                  value={studentData.name}
-                  onChange={(e) => setStudentData({ ...studentData, name: e.target.value })}
-                />
+          </>
+        )}
 
-                <input
-                  className="form-control mt-2"
-                  type="date"
-                  placeholder="DOB"
-                  value={studentData.dob}
-                  onChange={(e) => setStudentData({ ...studentData, dob: e.target.value })}
-                />
+        {/* VIEW CLASSES */}
+        {activeMenu === "view" && (
+          <>
+            <h4>View Classes</h4>
 
-                <select
-                  className="form-select mt-2"
-                  value={studentData.className}
-                  onChange={(e) => setStudentData({ ...studentData, className: e.target.value })}
-                >
-                  <option value="">Select Class</option>
-                  {classes.map((c) => (
-                    <option key={c}>{c}</option>
+            <select
+              className="form-select w-50 mt-3"
+              value={viewClass}
+              onChange={(e) => setViewClass(e.target.value)}
+            >
+              <option value="">Select Class</option>
+              {classes.map((c) => (
+                <option key={c}>{c}</option>
+              ))}
+            </select>
+
+            <select
+              className="form-select w-50 mt-3"
+              value={viewStream}
+              onChange={(e) => setViewStream(e.target.value)}
+            >
+              <option value="">Select Stream</option>
+              {streams.map((s) => (
+                <option key={s}>{s}</option>
+              ))}
+            </select>
+
+            {viewClass && viewStream && (
+              <>
+                <h5 className="mt-4">
+                  Students in {viewClass}{viewStream}
+                </h5>
+
+                <ul className="list-group w-50">
+                  {sampleClassList.map((name, i) => (
+                    <li className="list-group-item" key={i}>
+                      {name}
+                    </li>
                   ))}
-                </select>
+                </ul>
 
-                <select
-                  className="form-select mt-2"
-                  value={studentData.stream}
-                  onChange={(e) => setStudentData({ ...studentData, stream: e.target.value })}
+                <button
+                  className="btn btn-primary mt-3"
+                  onClick={() => window.print()}
                 >
-                  <option value="">Select Stream</option>
-                  {streams.map((s) => (
-                    <option key={s}>{s}</option>
-                  ))}
-                </select>
-
-                <input
-                  className="form-control mt-2"
-                  placeholder="Parent Contact"
-                  value={studentData.parentContact}
-                  onChange={(e) =>
-                    setStudentData({ ...studentData, parentContact: e.target.value })
-                  }
-                />
-
-                <input
-                  className="form-control mt-2"
-                  placeholder="Parent Email (optional)"
-                  value={studentData.parentEmail}
-                  onChange={(e) =>
-                    setStudentData({ ...studentData, parentEmail: e.target.value })
-                  }
-                />
-
-                <button className="btn btn-success mt-3" onClick={submitStudent}>
-                  Register Student
+                  Print Class List
                 </button>
-              </div>
-            )}
-
-            {/* ✅ TEACHER FORM */}
-            {activeEnrolTab === "teacher" && (
-              <div className="card p-4" style={{ background: "white" }}>
-                <h5>Register Teacher</h5>
-
-                <input
-                  className="form-control mt-2"
-                  placeholder="Full Name"
-                  value={teacherData.name}
-                  onChange={(e) => setTeacherData({ ...teacherData, name: e.target.value })}
-                />
-
-                <select
-                  className="form-select mt-2"
-                  value={teacherData.subject}
-                  onChange={(e) => setTeacherData({ ...teacherData, subject: e.target.value })}
-                >
-                  <option value="">Select Subject</option>
-                  {subjects.map((s) => (
-                    <option key={s}>{s}</option>
-                  ))}
-                </select>
-
-                <input
-                  className="form-control mt-2"
-                  placeholder="Phone Number"
-                  value={teacherData.phone}
-                  onChange={(e) => setTeacherData({ ...teacherData, phone: e.target.value })}
-                />
-
-                <input
-                  className="form-control mt-2"
-                  placeholder="Email"
-                  value={teacherData.email}
-                  onChange={(e) => setTeacherData({ ...teacherData, email: e.target.value })}
-                />
-
-                <button className="btn btn-success mt-3" onClick={submitTeacher}>
-                  Register Teacher
-                </button>
-              </div>
+              </>
             )}
           </>
         )}
 
-        {/* ✅ Existing Assign Classes Section */}
+        {/* ASSIGN CLASSES (existing code, unchanged) */}
         {activeMenu === "assign" && (
           <>
             <h4>Select Class</h4>
@@ -349,9 +406,7 @@ export default function AdminDashboard({ setUser }) {
                         </select>
 
                         {pendingAssignments[subj] && (
-                          <p className="mt-2 text-success">
-                            ✅ {pendingAssignments[subj]}
-                          </p>
+                          <p className="mt-2 text-success">✅ {pendingAssignments[subj]}</p>
                         )}
                       </div>
                     </div>
@@ -394,6 +449,337 @@ export default function AdminDashboard({ setUser }) {
             )}
           </>
         )}
+
+        {/* RECORD RESULTS */}
+        {activeMenu === "results" && (
+          <>
+            <h4>Record Exam Results</h4>
+
+            <select
+              className="form-select w-50 mt-2"
+              value={examClass}
+              onChange={(e) => {
+                setExamClass(e.target.value);
+                setExamStudents([
+                  { name: "Bundi Nyaga", scores: {} },
+                  { name: "Kinya Edith", scores: {} },
+                  { name: "Mutuma Kenns", scores: {} },
+                  { name: "Maingi Ian", scores: {} },
+                ]);
+              }}
+            >
+              <option value="">Select Class</option>
+              {classes.map((c) => (
+                <option key={c}>{c}</option>
+              ))}
+            </select>
+
+            {examClass && (
+              <>
+                <table className="table table-bordered mt-3 bg-white">
+                  <thead>
+                    <tr>
+                      <th>Student</th>
+                      {examSubjects.map((subj) => (
+                        <th key={subj}>{subj}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {examStudents.map((st, i) => (
+                      <tr key={i}>
+                        <td>{st.name}</td>
+                        {examSubjects.map((subj) => (
+                          <td key={subj}>
+                            <input
+                              type="number"
+                              className="form-control"
+                              min="0"
+                              max="100"
+                              value={st.scores[subj] || ""}
+                              onChange={(e) =>
+                                handleScoreChange(i, subj, e.target.value)
+                              }
+                            />
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+
+                <button className="btn btn-success">Save Results</button>
+              </>
+            )}
+          </>
+        )}
+
+        {/* GENERATE REPORTS */}
+        {activeMenu === "reports" && (
+          <>
+            <h4>Generate Reports</h4>
+
+            <p>Print student performance per class or whole stream:</p>
+
+            <select className="form-select w-50 mt-2">
+              <option value="">Select Class</option>
+              {classes.map((c) => (
+              <option key={c}>{c}</option>
+            ))}
+            </select>
+
+            {/* NEW TERM SELECT DROPDOWN */}
+            <select className="form-select w-50 mt-3">
+              <option value="all">All Terms</option>
+              <option value="1">Term 1</option>
+              <option value="2">Term 2</option>
+              <option value="3">Term 3</option>
+            </select>
+
+            <button className="btn btn-primary mt-3" onClick={() => window.print()}>
+            Print Class Report
+            </button>
+
+            <button className="btn btn-secondary mt-3 ms-2" onClick={() => window.print()}>
+            Print Stream Report
+            </button>
+          </>
+        )}
+
+
+        {/* NEW ENROLMENT */}
+        {activeMenu === "enrol" && (
+          <>
+            <h4>New Enrolment</h4>
+
+            <div className="d-flex mb-3 mt-2">
+              <button
+                className="btn me-2"
+                style={{
+                  backgroundColor: activeEnrolTab === "student" ? "#e9ecef" : "white",
+                  border: "1px solid #ccc",
+                }}
+                onClick={() => setActiveEnrolTab("student")}
+              >
+                Register Student
+              </button>
+
+              <button
+                className="btn"
+                style={{
+                  backgroundColor: activeEnrolTab === "teacher" ? "#e9ecef" : "white",
+                  border: "1px solid #ccc",
+                }}
+                onClick={() => setActiveEnrolTab("teacher")}
+              >
+                Register Teacher
+              </button>
+            </div>
+
+            {activeEnrolTab === "student" && (
+              <div className="card p-4" style={{ background: "white" }}>
+                <h5>Register Student</h5>
+                <input
+                  className="form-control mt-2"
+                  placeholder="Full Name"
+                  value={studentData.name}
+                  onChange={(e) => setStudentData({ ...studentData, name: e.target.value })}
+                />
+                <input
+                  className="form-control mt-2"
+                  type="date"
+                  value={studentData.dob}
+                  onChange={(e) => setStudentData({ ...studentData, dob: e.target.value })}
+                />
+                <select
+                  className="form-select mt-2"
+                  value={studentData.className}
+                  onChange={(e) => setStudentData({ ...studentData, className: e.target.value })}
+                >
+                  <option value="">Select Class</option>
+                  {classes.map((c) => (
+                    <option key={c}>{c}</option>
+                  ))}
+                </select>
+                <select
+                  className="form-select mt-2"
+                  value={studentData.stream}
+                  onChange={(e) => setStudentData({ ...studentData, stream: e.target.value })}
+                >
+                  <option value="">Select Stream</option>
+                  {streams.map((s) => (
+                    <option key={s}>{s}</option>
+                  ))}
+                </select>
+                <input
+                  className="form-control mt-2"
+                  placeholder="Parent Contact"
+                  value={studentData.parentContact}
+                  onChange={(e) => setStudentData({ ...studentData, parentContact: e.target.value })}
+                />
+                <input
+                  className="form-control mt-2"
+                  placeholder="Parent Email (optional)"
+                  value={studentData.parentEmail}
+                  onChange={(e) => setStudentData({ ...studentData, parentEmail: e.target.value })}
+                />
+                <button className="btn btn-success mt-3" onClick={submitStudent}>
+                  Register Student
+                </button>
+              </div>
+            )}
+
+            {activeEnrolTab === "teacher" && (
+              <div className="card p-4" style={{ background: "white" }}>
+                <h5>Register Teacher</h5>
+                <input
+                  className="form-control mt-2"
+                  placeholder="Full Name"
+                  value={teacherData.name}
+                  onChange={(e) => setTeacherData({ ...teacherData, name: e.target.value })}
+                />
+                <select
+                  className="form-select mt-2"
+                  value={teacherData.subject}
+                  onChange={(e) => setTeacherData({ ...teacherData, subject: e.target.value })}
+                >
+                  <option value="">Select Subject</option>
+                  {subjects.map((s) => (
+                    <option key={s}>{s}</option>
+                  ))}
+                </select>
+                <input
+                  className="form-control mt-2"
+                  placeholder="Phone Number"
+                  value={teacherData.phone}
+                  onChange={(e) => setTeacherData({ ...teacherData, phone: e.target.value })}
+                />
+                <input
+                  className="form-control mt-2"
+                  placeholder="Email"
+                  value={teacherData.email}
+                  onChange={(e) => setTeacherData({ ...teacherData, email: e.target.value })}
+                />
+                <button className="btn btn-success mt-3" onClick={submitTeacher}>
+                  Register Teacher
+                </button>
+              </div>
+            )}
+          </>
+        )}
+        {/* SEND ALERTS */}
+            {activeMenu === "alerts" && (
+            <>
+              <h4>Send Alerts</h4>
+              <p>Notifications to parents will be sent via SMS or email.</p>
+
+              <button
+              className="btn btn-warning mt-2"
+              onClick={() => alert("✅ Results notification will be sent to parents. (Placeholder)")}
+              >
+              Send Results Notification to Parents
+              </button>
+            </>
+        )}
+        {/* ANNOUNCEMENTS SECTION */}
+        {activeMenu === "announcements" && (
+          <>
+            <h4>Announcements</h4>
+            <p>Send announcements to teachers or parents.</p>
+
+            <label className="me-3">
+              <input
+                type="checkbox"
+                checked={announcementAudience.includes("teachers")}
+                onChange={() => toggleAudience("teachers")}
+              />{" "}
+              Teachers
+            </label>
+
+            <label className="me-3">
+              <input
+                type="checkbox"
+                checked={announcementAudience.includes("parents")}
+                onChange={() => toggleAudience("parents")}
+              />{" "}
+              Parents
+            </label>
+
+            <textarea
+              className="form-control w-75 mt-3"
+              rows={3}
+              placeholder="Write announcement..."
+              value={announcementMessage}
+              onChange={(e) => setAnnouncementMessage(e.target.value)}
+            />
+
+            <button className="btn btn-primary mt-3" onClick={sendAnnouncement}>
+              Send Announcement
+            </button>
+
+            {sentAnnouncements.length > 0 && (
+              <div className="mt-4 w-75">
+                <h5>Sent Announcements</h5>
+                <ul className="list-group">
+                  {sentAnnouncements.map((ann, i) => (
+                    <li className="list-group-item" key={i}>
+                      <strong>{ann.date}</strong>: {ann.message}
+                      <br />
+                      <small>To: {ann.audience.join(" & ")}</small>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </>
+        )}
+        {/* THRESHOLDS SECTION */}
+        {activeMenu === "thresholds" && (
+          <>
+            <h4>Set Performance Thresholds</h4>
+
+            <select
+              className="form-select w-50 mb-3"
+              value={selectedClassForThreshold}
+              onChange={(e) => setSelectedClassForThreshold(e.target.value)}
+            >
+              <option value="">Select Class</option>
+              {classes.map((cls) => (
+                <option key={cls} value={cls}>{cls}</option>
+              ))}
+            </select>
+
+            {selectedClassForThreshold && (
+              <div className="card p-3 w-75">
+                {subjects.map((subj) => (
+                  <div className="mb-2" key={subj}>
+                    <label className="form-label">{subj} Threshold</label>
+                    <input
+                      type="number"
+                      className="form-control"
+                      min="0"
+                      max="100"
+                      value={performanceThresholds[selectedClassForThreshold]?.[subj] || ""}
+                      onChange={(e) => {
+                        const newThresholds = { ...performanceThresholds };
+                        if (!newThresholds[selectedClassForThreshold]) newThresholds[selectedClassForThreshold] = {};
+                        newThresholds[selectedClassForThreshold][subj] = Number(e.target.value);
+                        setPerformanceThresholds(newThresholds);
+                      }}
+                    />
+                  </div>
+                ))}
+
+                <button className="btn btn-success mt-3" onClick={() => alert("Thresholds saved!")}>
+                  Save Thresholds
+                </button>
+              </div>
+            )}
+          </>
+        )}
+
+
+
       </div>
     </div>
   );
