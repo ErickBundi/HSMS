@@ -10,10 +10,8 @@ export default function Login({ setUser }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post(`${import.meta.env.VITE_API_URL}/login`,{ username, password, role }
-  );
-
-
+      const res = await axios.post(`${import.meta.env.VITE_API_URL}/login`, { username, password, role });
+      console.log("Login response:", res.data);
       const loggedInUser = res.data;
       setUser(loggedInUser);
       localStorage.setItem('user', JSON.stringify(loggedInUser));
