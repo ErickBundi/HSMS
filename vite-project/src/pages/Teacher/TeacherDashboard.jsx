@@ -5,7 +5,7 @@ export default function TeacherDashboard({ setUser }) {
   const navigate = useNavigate();
 
   const teacherAssignments = {
-    "Form 2A": ["English", "Science"],
+    "Form 2A": ["English", "Biology"],
     "Form 3B": ["Math", "English"],
   };
 

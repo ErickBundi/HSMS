@@ -1,9 +1,14 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import EnrollStudent from "./EnrollStudent.jsx";
+import EnrollTeacher from "./EnrollTeacher.jsx";
+
 
 export default function AdminDashboard({ setUser }) {
   const navigate = useNavigate();
   const [activeMenu, setActiveMenu] = useState("dashboard");
+  const [enrollType, setEnrollType] = useState("student");
+
 
   const classes = ["Form 1", "Form 2", "Form 3", "Form 4"];
   const streams = ["A", "B", "C", "D"];
@@ -552,121 +557,26 @@ const sendAnnouncement = () => {
           <>
             <h4>New Enrolment</h4>
 
-            <div className="d-flex mb-3 mt-2">
+            {/* Toggle between student and teacher registration */}
+            <div className="mb-3">
               <button
-                className="btn me-2"
-                style={{
-                  backgroundColor: activeEnrolTab === "student" ? "#e9ecef" : "white",
-                  border: "1px solid #ccc",
-                }}
-                onClick={() => setActiveEnrolTab("student")}
+                className={`btn ${enrollType === "student" ? "btn-secondary" : "btn-outline-secondary"} me-2`}
+                onClick={() => setEnrollType("student")}
               >
                 Register Student
               </button>
-
               <button
-                className="btn"
-                style={{
-                  backgroundColor: activeEnrolTab === "teacher" ? "#e9ecef" : "white",
-                  border: "1px solid #ccc",
-                }}
-                onClick={() => setActiveEnrolTab("teacher")}
+                className={`btn ${enrollType === "teacher" ? "btn-secondary" : "btn-outline-secondary"}`}
+                onClick={() => setEnrollType("teacher")}
               >
                 Register Teacher
               </button>
             </div>
 
-            {activeEnrolTab === "student" && (
-              <div className="card p-4" style={{ background: "white" }}>
-                <h5>Register Student</h5>
-                <input
-                  className="form-control mt-2"
-                  placeholder="Full Name"
-                  value={studentData.name}
-                  onChange={(e) => setStudentData({ ...studentData, name: e.target.value })}
-                />
-                <input
-                  className="form-control mt-2"
-                  type="date"
-                  value={studentData.dob}
-                  onChange={(e) => setStudentData({ ...studentData, dob: e.target.value })}
-                />
-                <select
-                  className="form-select mt-2"
-                  value={studentData.className}
-                  onChange={(e) => setStudentData({ ...studentData, className: e.target.value })}
-                >
-                  <option value="">Select Class</option>
-                  {classes.map((c) => (
-                    <option key={c}>{c}</option>
-                  ))}
-                </select>
-                <select
-                  className="form-select mt-2"
-                  value={studentData.stream}
-                  onChange={(e) => setStudentData({ ...studentData, stream: e.target.value })}
-                >
-                  <option value="">Select Stream</option>
-                  {streams.map((s) => (
-                    <option key={s}>{s}</option>
-                  ))}
-                </select>
-                <input
-                  className="form-control mt-2"
-                  placeholder="Parent Contact"
-                  value={studentData.parentContact}
-                  onChange={(e) => setStudentData({ ...studentData, parentContact: e.target.value })}
-                />
-                <input
-                  className="form-control mt-2"
-                  placeholder="Parent Email (optional)"
-                  value={studentData.parentEmail}
-                  onChange={(e) => setStudentData({ ...studentData, parentEmail: e.target.value })}
-                />
-                <button className="btn btn-success mt-3" onClick={submitStudent}>
-                  Register Student
-                </button>
-              </div>
-            )}
-
-            {activeEnrolTab === "teacher" && (
-              <div className="card p-4" style={{ background: "white" }}>
-                <h5>Register Teacher</h5>
-                <input
-                  className="form-control mt-2"
-                  placeholder="Full Name"
-                  value={teacherData.name}
-                  onChange={(e) => setTeacherData({ ...teacherData, name: e.target.value })}
-                />
-                <select
-                  className="form-select mt-2"
-                  value={teacherData.subject}
-                  onChange={(e) => setTeacherData({ ...teacherData, subject: e.target.value })}
-                >
-                  <option value="">Select Subject</option>
-                  {subjects.map((s) => (
-                    <option key={s}>{s}</option>
-                  ))}
-                </select>
-                <input
-                  className="form-control mt-2"
-                  placeholder="Phone Number"
-                  value={teacherData.phone}
-                  onChange={(e) => setTeacherData({ ...teacherData, phone: e.target.value })}
-                />
-                <input
-                  className="form-control mt-2"
-                  placeholder="Email"
-                  value={teacherData.email}
-                  onChange={(e) => setTeacherData({ ...teacherData, email: e.target.value })}
-                />
-                <button className="btn btn-success mt-3" onClick={submitTeacher}>
-                  Register Teacher
-                </button>
-              </div>
-            )}
+            {enrollType === "student" ? <EnrollStudent /> : <EnrollTeacher />}
           </>
         )}
+
         {/* SEND ALERTS */}
             {activeMenu === "alerts" && (
             <>
